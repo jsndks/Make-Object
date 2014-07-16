@@ -1,0 +1,16 @@
+{
+  "name": "makeObject",
+  "version": "1.0.0",
+  "description": "command line utility for creating style objects",
+  "main": "lib/makeObject",
+  "engines": {
+    "node": "0.8"
+  },
+  "devDependencies": {
+    "grunt": "0.4.1"
+  },
+  "preferGlobal": "true",
+  "bin": {
+    "makeObject" : "lib/makeObject.js"
+  }
+}
