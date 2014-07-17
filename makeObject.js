@@ -1,30 +1,57 @@
 #! /usr/bin/env node
 
-var STYLE_EXT = 'scss';
-var MODULE_PATH = 'assets/styles/modules/';
+// mkobj media --h --b "sm, md, lg"
+// create an object with name "media",
+// include a helpers file, include sm, md, lg
+// files and add respective includes
 
 var fs = require('fs');
 var nopt = require("nopt");
 var Stream = require("stream").Stream;
 var path = require("path");
 var mkdirp = require('mkdirp');
-var knownOpts = {
-    "responsive": [String]
+
+// ----------------------------------------------------------------
+// Setup Variables
+// ----------------------------------------------------------------
+var CONFIG = {
+    EXT: 'scss',
+    PREFIX: '_',
+    URI: 'assets/styles/modules/'
 };
-var parsed = nopt(knownOpts, process.argv);
+
+var knownOpts = {
+    'helpers': Boolean,
+    'breakpoints': [String, Array]
+};
+
+var shortHands = {
+    'h': ['--helpers'],
+    'b': ['--breakpoints']
+};
+
+var parsed = nopt(knownOpts, shortHands, process.argv);
 var args = parsed.argv.remain;
 var flagArgs = parsed;
 
-var objName = args[0];
-var objPath = MODULE_PATH + args[0];
-var baseFileName = '_' + args[0] + '.' + STYLE_EXT;
+console.log(parsed);
 
+var objName = args[0];
+var objPath = CONFIG.PATH + args[0];
+var baseFileName = CONFIG.PREFIX + args[0] + '.' + CONFIG.EXT;
+
+// ----------------------------------------------------------------
+// Create the object Badge
+// ----------------------------------------------------------------
 var badge = '/* ---------------------------------------------------------------------';
 badge += '\n';
 badge += objName;
 badge += '\n';
 badge += '------------------------------------------------------------------------ */';
 
+// ----------------------------------------------------------------
+// Create the object directory
+// ----------------------------------------------------------------
 function createDir() {
     mkdirp(objPath, function(err) {
         console.log('dir ' + args[0] + ' was created');
@@ -32,6 +59,9 @@ function createDir() {
     });
 }
 
+// ----------------------------------------------------------------
+// Create the object directory
+// ----------------------------------------------------------------
 function createFile() {
     fs.writeFile(objPath + '/' + baseFileName, badge);
     if (flagArgs.responsive) {
@@ -46,4 +76,21 @@ function createFile() {
     }
 }
 
-createDir();
+// ----------------------------------------------------------------
+// Create import files
+// ----------------------------------------------------------------
+
+
+// createDir();
+
+
+
+
+
+
+
+
+
+
+
+
