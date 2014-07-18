@@ -11,6 +11,10 @@
   },
   "preferGlobal": "true",
   "bin": {
-    "makeObject" : "lib/makeObject.js"
+    "makeObject": "lib/makeObject.js"
+  },
+  "dependencies": {
+    "handlebars": "^2.0.0-alpha.4",
+    "promise": "^5.0.0"
   }
 }
