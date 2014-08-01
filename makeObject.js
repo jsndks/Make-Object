@@ -6,6 +6,12 @@ var MODULE = (function () {
     // include a helpers file, include sm, md, lg
     // files and add respective includes
 
+    // mkobj media --i "md"
+    // create a breakpoint specific file
+    // without recreating a base file
+    // also add this entry to the appropriate
+    // include
+
     var fs = require('fs');
     var nopt = require("nopt");
     var Stream = require("stream").Stream;
@@ -27,12 +33,14 @@ var MODULE = (function () {
 
     var knownOpts = {
         'helpers': Boolean,
-        'breakpoints': [String, Array]
+        'breakpoints': [String, Array],
+        'individual': [String, Array]
     };
 
     var shortHands = {
         'h': ['--helpers'],
-        'b': ['--breakpoints']
+        'b': ['--breakpoints'],
+        'i': ['--individual']
     };
 
     var parsed = nopt(knownOpts, shortHands, process.argv);
@@ -60,48 +68,10 @@ var MODULE = (function () {
      */
     proto._init = function() {
         this._createChildren()
-            ._createDir();
+            ._run();
 
         return this;
     }
-
-    /**
-     * templates out the base object
-     *
-     * @method _templateObject
-     * @public
-     */
-    proto._getBadge = function(objectName) {
-        var templatePromise = new Promise(function(resolve, reject) {
-            fs.readFile(CONFIG.TEMPLATE, 'utf8', function(err, res) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(res);
-                }
-            });
-        });
-
-        return templatePromise.done(this._templateFile.bind(this, objectName));
-
-        // templatePromise.done(function(source) {
-        //     var template = Handlebars.compile(source);
-        //     var data = { "title": objectName };
-        //     console.log(template(data));
-        // });
-    };
-
-    /**
-     * Templates out a file
-     *
-     * @method _templateFile
-     * @public
-     */
-    proto._templateFile = function(objectName, source) {
-        var template = Handlebars.compile(source);
-        var data = { "title": objectName };
-        return template(data);
-    };
 
     /**
      * Create any child objects or references
@@ -121,24 +91,91 @@ var MODULE = (function () {
         return this;
     };
 
-    // ----------------------------------------------------------------
-    // Create the object directory
-    // ----------------------------------------------------------------
-    proto._createDir = function() {
+    /**
+     * Set up promises
+     *
+     * @method _definePromises
+     * @public
+     */
+    proto._definePromises = function() {
+        this.readTemplatePromise = new Promise(this._readTemplate.bind(this));
+        this.templateFilePromise = new Promise(this._templateFile.bind(this));
+        this.createDirPromise = new Promise(this._createDir.bind(this));
+        this.createFilePromise = new Promise(this._createFile.bind(this));
+
+        return this;
+    };
+
+    /**
+     * Execute the chain of commands
+     *
+     * @method _run
+     * @public
+     */
+    proto._run = function() {
         var self = this;
-        mkdirp(this.objectProps.path, function(err) {
-            console.log('dir ' + args[0] + ' was created');
-            self._createFile();
-        });
+        this.readTemplatePromise = new Promise(this._readTemplate.bind(this))
+            // .done(self._templateFile('yo', src));
+            .done(function(src) {
+                console.log(src);
+            });
+    };
+
+    /**
+     * templates out the base object
+     *
+     * @method _readTemplate
+     * @public
+     */
+    proto._readTemplate = function(resolve, reject) {
+        console.log('_readTemplate');
+        // this.badgePromise = new Promise(function(resolve, reject) {
+            fs.readFile(CONFIG.TEMPLATE, 'utf8', function(err, res) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(res);
+                }
+            });
+        // }).done(this._templateFile.bind(this, objectName));
+
+        return this;
+    };
+
+    /**
+     * Templates out a file
+     *
+     * @method _templateFile
+     * @public
+     */
+    proto._templateFile = function(objectName, source) {
+        console.log('_templateFile');
+        var template = Handlebars.compile(source);
+        var data = { "title": objectName };
+        this.badge = template(data);
     };
 
     // ----------------------------------------------------------------
     // Create the object directory
     // ----------------------------------------------------------------
-    proto._createFile = function() {
-        console.log(this._getBadge(this.objectProps.name));
+    proto._createDir = function(badge) {
+        console.log('_createDir');
+        var self = this;
+        mkdirp(this.objectProps.path, function(err) {
+            console.log('dir ' + self.objectProps.name + ' was created');
+            self._createFile(badge);
+        });
 
-        // fs.writeFile(this.objectProps.path + this.objectProps.filename, this._getBadge(this.objectProps.name));
+        return this;
+    };
+
+    // ----------------------------------------------------------------
+    // Create the object directory
+    // ----------------------------------------------------------------
+    proto._createFile = function(badge) {
+        console.log('_createFile');
+        // console.log(this.objectProps.fileName);
+        fs.writeFile(this.objectProps.path + '/' + this.objectProps.fileName, badge);
         // if (flagArgs.responsive) {
         //     var breakpoints = flagArgs.responsive.split(',');
         //     var i = 0;
@@ -149,6 +186,8 @@ var MODULE = (function () {
         //         fs.writeFile(fileName, badge);
         //     }
         // }
+
+        return this;
     }
 
     // ----------------------------------------------------------------
