@@ -70,7 +70,6 @@ var MODULE = (function () {
         this._createChildren()
             // ._run();
 
-
         this.testPromise = new Promise(this._testMethod.bind(this))
             .then(this._nextMethod.bind(this));
 
